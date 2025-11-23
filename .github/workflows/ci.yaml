@@ -35,10 +35,11 @@ jobs:
           CLICKHOUSE_HOST: "localhost"
           CLICKHOUSE_PORT: "8123"
           CLICKHOUSE_USER: "default"
-          CLICKHOUSE_PASSWORD: ""
+          CLICKHOUSE_PASSWORD: "clickhouse"
           CLICKHOUSE_SECURE: "false"
           CLICKHOUSE_VERIFY: "false"
           CHDB_ENABLED: "true"
+          CLICKHOUSE_ENABLE_SET_ROLE: "false"
         run: |
           uv run pytest tests
 

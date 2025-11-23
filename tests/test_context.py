@@ -152,7 +152,9 @@ class TestExecuteQuery:
 
     @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
-    def test_execute_query_set_role_failure_raises_error(self, mock_create_client, mock_get_mcp_config):
+    def test_execute_query_set_role_failure_raises_error(
+        self, mock_create_client, mock_get_mcp_config
+    ):
         """Test that execute_query raises ToolError when SET ROLE fails."""
         from mcp_clickhouse.mcp_server import execute_query
 
@@ -202,7 +204,9 @@ class TestListDatabases:
 
     @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
-    def test_list_databases_with_company_id_sets_role(self, mock_create_client, mock_get_mcp_config):
+    def test_list_databases_with_company_id_sets_role(
+        self, mock_create_client, mock_get_mcp_config
+    ):
         """Test that list_databases calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import list_databases
 
@@ -259,7 +263,11 @@ class TestListTables:
     @patch("mcp_clickhouse.mcp_server.get_paginated_table_data")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
     def test_list_tables_with_company_id_sets_role(
-        self, mock_create_client, mock_get_paginated, mock_fetch_names, mock_get_mcp_config
+        self,
+        mock_create_client,
+        mock_get_paginated,
+        mock_fetch_names,
+        mock_get_mcp_config,
     ):
         """Test that list_tables calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import list_tables

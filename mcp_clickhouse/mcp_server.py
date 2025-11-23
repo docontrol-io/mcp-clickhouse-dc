@@ -147,7 +147,9 @@ def list_databases(ctx: Context):
             logger.error(f"Failed to set role '{user_context.company_id}': {e}")
             raise ToolError(f"Failed to set role: {str(e)}")
     else:
-        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
+        logger.debug(
+            f"SET ROLE disabled - skipping for company '{user_context.company_id}'"
+        )
 
     result = client.command("SHOW DATABASES")
 
@@ -347,7 +349,9 @@ def list_tables(
             logger.error(f"Failed to set role '{user_context.company_id}': {e}")
             raise ToolError(f"Failed to set role: {str(e)}")
     else:
-        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
+        logger.debug(
+            f"SET ROLE disabled - skipping for company '{user_context.company_id}'"
+        )
 
     if page_token and page_token in table_pagination_cache:
         cached_state = table_pagination_cache[page_token]
@@ -456,7 +460,9 @@ def execute_query(query: str, ctx: Context):
             logger.error(f"Failed to set role '{user_context.company_id}': {e}")
             raise ToolError(f"Failed to set role: {str(e)}")
     else:
-        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
+        logger.debug(
+            f"SET ROLE disabled - skipping for company '{user_context.company_id}'"
+        )
 
     try:
         read_only = get_readonly_setting(client)

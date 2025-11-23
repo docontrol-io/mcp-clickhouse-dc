@@ -23,10 +23,13 @@ class TestPagination(unittest.TestCase):
         """Set up the environment before tests."""
         cls.client = create_clickhouse_client()
 
-        # Create test role for context
+        # Create test role for context and grant to default user
         try:
             cls.client.command("CREATE ROLE IF NOT EXISTS test_company")
             cls.client.command("GRANT ALL ON *.* TO test_company")
+            cls.client.command(
+                "GRANT test_company TO default"
+            )  # Grant role to default user
         except Exception as e:
             # Role might already exist or user doesn't have permission
             pass

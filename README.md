@@ -351,21 +351,30 @@ ToolError: Failed to set role: [ClickHouse error message]
 
 ### Database Setup Requirements
 
-To use this feature, you need to configure roles in your ClickHouse database:
+To use this feature, you need to configure roles in your ClickHouse database. **This requires a ClickHouse user with admin privileges**:
 
 ```sql
 -- Create a role for a company
-CREATE ROLE acme_corp;
+CREATE ROLE IF NOT EXISTS acme_corp;
 
 -- Grant permissions to the role
-GRANT SELECT ON database.* TO acme_corp;
+GRANT ALL ON *.* TO acme_corp;
 
 -- Configure row-level security policies as needed
 -- (implementation depends on your schema)
 
--- Assign the role to your MCP database user
+-- Grant the role to your MCP database user
 GRANT acme_corp TO mcp_user;
 ```
+
+**For testing or when roles are not configured**, you can disable SET ROLE execution:
+
+```bash
+# Disable SET ROLE for development/testing
+export CLICKHOUSE_ENABLE_SET_ROLE=false
+```
+
+When disabled, the server still requires `company_id` in context (for logging/auditing) but won't execute the `SET ROLE` command.
 
 ## Development
 
@@ -451,6 +460,9 @@ The following environment variables are used to configure the ClickHouse and chD
 - `CLICKHOUSE_ENABLED`: Enable/disable ClickHouse functionality
   - Default: `"true"`
   - Set to `"false"` to disable ClickHouse tools when using chDB only
+- `CLICKHOUSE_ENABLE_SET_ROLE`: Enable/disable SET ROLE execution for multi-tenancy
+  - Default: `"true"`
+  - Set to `"false"` to disable SET ROLE (still requires company_id for logging)
 
 #### chDB Variables
 
