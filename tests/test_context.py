@@ -31,12 +31,12 @@ class TestGetUserContext:
         ctx = Mock()
         ctx.request_context = Mock()
         # Use spec to ensure only company_id exists
-        ctx.request_context.meta = Mock(spec=['company_id'])
+        ctx.request_context.meta = Mock(spec=["company_id"])
         ctx.request_context.meta.company_id = "acme_corp"
         # user_name attribute doesn't exist
-        
+
         result = get_user_context(ctx)
-        
+
         assert result is not None
         assert result.user_name is None
         assert result.company_id == "acme_corp"
@@ -81,7 +81,7 @@ class TestExecuteQuery:
         ctx = Mock()
         ctx.request_context = Mock()
         # Use spec to ensure only user_name exists
-        ctx.request_context.meta = Mock(spec=['user_name'])
+        ctx.request_context.meta = Mock(spec=["user_name"])
         ctx.request_context.meta.user_name = "john_doe"
         # company_id missing
 
@@ -180,7 +180,7 @@ class TestListDatabases:
         ctx = Mock()
         ctx.request_context = Mock()
         # Use spec to ensure only user_name exists
-        ctx.request_context.meta = Mock(spec=['user_name'])
+        ctx.request_context.meta = Mock(spec=["user_name"])
         ctx.request_context.meta.user_name = "john_doe"
 
         with pytest.raises(ToolError) as exc_info:
@@ -228,7 +228,7 @@ class TestListTables:
         ctx = Mock()
         ctx.request_context = Mock()
         # Use spec to ensure only user_name exists
-        ctx.request_context.meta = Mock(spec=['user_name'])
+        ctx.request_context.meta = Mock(spec=["user_name"])
         ctx.request_context.meta.user_name = "john_doe"
 
         with pytest.raises(ToolError) as exc_info:

@@ -6,6 +6,7 @@ services:
       - "9000:9000"
     volumes:
       - clickhouse-data:/var/lib/clickhouse
+      - ./init-roles.sql:/docker-entrypoint-initdb.d/init-roles.sql
     environment:
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PASSWORD=clickhouse
