@@ -35,6 +35,7 @@ jobs:
           CLICKHOUSE_PORT: 8123
           CLICKHOUSE_USER: default
           CLICKHOUSE_PASSWORD: clickhouse
+          CHDB_ENABLED: "true"
 
       - name: Run linter
         run: uv run ruff check .

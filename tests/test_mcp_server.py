@@ -88,12 +88,14 @@ def mcp_server():
 
 
 @pytest.mark.asyncio
-async def test_list_databases(mcp_server, setup_test_database):
+async def test_list_databases(mcp_server, setup_test_database, mock_context):
     """Test the list_databases tool."""
     test_db, _, _ = setup_test_database
 
     async with Client(mcp_server) as client:
-        result = await client.call_tool("list_databases", {})
+        # Pass context metadata via MCP protocol
+        result = await client.call_tool("list_databases", {}, 
+                                       _meta={"user_name": "test_user", "company_id": "test_company"})
 
         # The result should be a list containing at least one item
         assert len(result.content) >= 1

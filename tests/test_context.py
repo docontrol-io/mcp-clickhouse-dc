@@ -30,12 +30,13 @@ class TestGetUserContext:
         """Test context extraction with only company_id (user_name missing)."""
         ctx = Mock()
         ctx.request_context = Mock()
-        ctx.request_context.meta = Mock()
+        # Use spec to ensure only company_id exists
+        ctx.request_context.meta = Mock(spec=['company_id'])
         ctx.request_context.meta.company_id = "acme_corp"
         # user_name attribute doesn't exist
-
+        
         result = get_user_context(ctx)
-
+        
         assert result is not None
         assert result.user_name is None
         assert result.company_id == "acme_corp"
@@ -79,7 +80,8 @@ class TestExecuteQuery:
         # Create context without company_id
         ctx = Mock()
         ctx.request_context = Mock()
-        ctx.request_context.meta = Mock()
+        # Use spec to ensure only user_name exists
+        ctx.request_context.meta = Mock(spec=['user_name'])
         ctx.request_context.meta.user_name = "john_doe"
         # company_id missing
 
@@ -133,8 +135,8 @@ class TestExecuteQuery:
 
         result = execute_query("SELECT 1", ctx)
 
-        # Verify SET role was called
-        mock_client.command.assert_called_once_with("SET role=acme_corp")
+        # Verify SET role was called (format_query_value adds quotes)
+        mock_client.command.assert_called_once_with("SET role='acme_corp'")
 
         # Verify query was executed
         mock_client.query.assert_called_once()
@@ -163,7 +165,7 @@ class TestExecuteQuery:
             execute_query("SELECT 1", ctx)
 
         assert "Failed to set role" in str(exc_info.value)
-        mock_client.command.assert_called_once_with("SET role=invalid_role")
+        mock_client.command.assert_called_once_with("SET role='invalid_role'")
 
 
 class TestListDatabases:
@@ -177,7 +179,8 @@ class TestListDatabases:
         # Create context without company_id
         ctx = Mock()
         ctx.request_context = Mock()
-        ctx.request_context.meta = Mock()
+        # Use spec to ensure only user_name exists
+        ctx.request_context.meta = Mock(spec=['user_name'])
         ctx.request_context.meta.user_name = "john_doe"
 
         with pytest.raises(ToolError) as exc_info:
@@ -209,7 +212,7 @@ class TestListDatabases:
 
         # Verify SET role was called first
         assert mock_client.command.call_count == 2
-        mock_client.command.assert_any_call("SET role=acme_corp")
+        mock_client.command.assert_any_call("SET role='acme_corp'")
         mock_client.command.assert_any_call("SHOW DATABASES")
 
 
@@ -224,7 +227,8 @@ class TestListTables:
         # Create context without company_id
         ctx = Mock()
         ctx.request_context = Mock()
-        ctx.request_context.meta = Mock()
+        # Use spec to ensure only user_name exists
+        ctx.request_context.meta = Mock(spec=['user_name'])
         ctx.request_context.meta.user_name = "john_doe"
 
         with pytest.raises(ToolError) as exc_info:
@@ -258,8 +262,8 @@ class TestListTables:
 
         result = list_tables("default", ctx=ctx)
 
-        # Verify SET role was called
-        mock_client.command.assert_called_once_with("SET role=acme_corp")
+        # Verify SET role was called (format_query_value adds quotes)
+        mock_client.command.assert_called_once_with("SET role='acme_corp'")
 
         # Verify result structure
         assert "tables" in result
