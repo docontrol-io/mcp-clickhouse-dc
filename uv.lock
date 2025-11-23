@@ -314,6 +314,40 @@ wheels = [
 ]
 
 [[package]]
+name = "clickhouse-mcp-dc"
+version = "0.1.12"
+source = { editable = "." }
+dependencies = [
+    { name = "cachetools" },
+    { name = "chdb" },
+    { name = "clickhouse-connect" },
+    { name = "fastmcp" },
+    { name = "python-dotenv" },
+    { name = "truststore" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cachetools", specifier = ">=5.5.0" },
+    { name = "chdb", specifier = ">=3.3.0" },
+    { name = "clickhouse-connect", specifier = ">=0.8.16" },
+    { name = "fastmcp", specifier = ">=2.0.0" },
+    { name = "pytest", marker = "extra == 'dev'" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "ruff", marker = "extra == 'dev'" },
+    { name = "truststore", specifier = ">=0.10" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -795,40 +829,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/5a/79/5724a540df19e192e
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/72/3751feae343a5ad07959df713907b5c3fbaed269d697a14b0c449080cf2e/mcp-1.17.0-py3-none-any.whl", hash = "sha256:0660ef275cada7a545af154db3082f176cf1d2681d5e35ae63e014faf0a35d40", size = 167737, upload-time = "2025-10-10T12:16:42.863Z" },
 ]
-
-[[package]]
-name = "mcp-clickhouse"
-version = "0.1.12"
-source = { editable = "." }
-dependencies = [
-    { name = "cachetools" },
-    { name = "chdb" },
-    { name = "clickhouse-connect" },
-    { name = "fastmcp" },
-    { name = "python-dotenv" },
-    { name = "truststore" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "cachetools", specifier = ">=5.5.0" },
-    { name = "chdb", specifier = ">=3.3.0" },
-    { name = "clickhouse-connect", specifier = ">=0.8.16" },
-    { name = "fastmcp", specifier = ">=2.0.0" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "truststore", specifier = ">=0.10" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "mdurl"
