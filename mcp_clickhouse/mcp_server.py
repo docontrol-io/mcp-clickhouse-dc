@@ -10,7 +10,7 @@ import clickhouse_connect
 import chdb.session as chs
 from clickhouse_connect.driver.binding import format_query_value
 from dotenv import load_dotenv
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Context
 from cachetools import TTLCache
 from fastmcp.tools import Tool
 from fastmcp.prompts import Prompt
@@ -21,6 +21,7 @@ from starlette.responses import PlainTextResponse
 
 from mcp_clickhouse.mcp_env import get_config, get_chdb_config, get_mcp_config
 from mcp_clickhouse.chdb_prompt import CHDB_PROMPT
+from mcp_clickhouse.context_manager import get_user_context
 
 
 @dataclass
@@ -100,7 +101,9 @@ async def health_check(request: Request) -> PlainTextResponse:
         return PlainTextResponse(f"OK - Connected to ClickHouse {version}")
     except Exception as e:
         # Return 503 Service Unavailable if we can't connect to ClickHouse
-        return PlainTextResponse(f"ERROR - Cannot connect to ClickHouse: {str(e)}", status_code=503)
+        return PlainTextResponse(
+            f"ERROR - Cannot connect to ClickHouse: {str(e)}", status_code=503
+        )
 
 
 def result_to_table(query_columns, result) -> List[Table]:
@@ -121,10 +124,28 @@ def to_json(obj: Any) -> str:
     return obj
 
 
-def list_databases():
+def list_databases(ctx: Context):
     """List available ClickHouse databases"""
-    logger.info("Listing all databases")
+    # company_id is MANDATORY
+    user_context = get_user_context(ctx)
+    if not user_context or not user_context.company_id:
+        error_msg = "company_id is required in context metadata"
+        logger.error(error_msg)
+        raise ToolError(error_msg)
+
+    logger.info(
+        f"Listing databases for user '{user_context.user_name}' (company: {user_context.company_id})"
+    )
+
     client = create_clickhouse_client()
+
+    # Set role with company_id
+    try:
+        client.command(f"SET role='{user_context.company_id}'")
+    except Exception as e:
+        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        raise ToolError(f"Failed to set role: {str(e)}")
+
     result = client.command("SHOW DATABASES")
 
     # Convert newline-separated string to list and trim whitespace
@@ -139,7 +160,9 @@ def list_databases():
 
 # Store pagination state for list_tables with 1-hour expiry
 # Using TTLCache from cachetools to automatically expire entries after 1 hour
-table_pagination_cache: TTLCache = TTLCache(maxsize=100, ttl=3600)  # 3600 seconds = 1 hour
+table_pagination_cache: TTLCache = TTLCache(
+    maxsize=100, ttl=3600
+)  # 3600 seconds = 1 hour
 
 
 def fetch_table_names_from_system(
@@ -270,6 +293,7 @@ def list_tables(
     page_token: Optional[str] = None,
     page_size: int = 50,
     include_detailed_columns: bool = True,
+    ctx: Context = None,
 ) -> Dict[str, Any]:
     """List available ClickHouse tables in a database, including schema, comment,
     row count, and column count.
@@ -283,6 +307,7 @@ def list_tables(
         include_detailed_columns: Whether to include detailed column metadata (default: True).
             When False, the columns array will be empty but create_table_query still contains
             all column information. This reduces payload size for large schemas.
+        ctx: MCP context containing user_name and company_id metadata
 
     Returns:
         A dictionary containing:
@@ -290,10 +315,19 @@ def list_tables(
         - next_page_token: Token for the next page, or None if no more pages
         - total_tables: Total number of tables matching the filters
     """
+    # company_id is MANDATORY
+    user_context = get_user_context(ctx)
+    if not user_context or not user_context.company_id:
+        error_msg = "company_id is required in context metadata"
+        logger.error(error_msg)
+        raise ToolError(error_msg)
+
     logger.info(
-        "Listing tables in database '%s' with like=%s, not_like=%s, "
+        "Listing tables in database '%s' for user '%s' (company: %s) with like=%s, not_like=%s, "
         "page_token=%s, page_size=%s, include_detailed_columns=%s",
         database,
+        user_context.user_name,
+        user_context.company_id,
         like,
         not_like,
         page_token,
@@ -301,6 +335,13 @@ def list_tables(
         include_detailed_columns,
     )
     client = create_clickhouse_client()
+
+    # Set role with company_id
+    try:
+        client.command(f"SET role='{user_context.company_id}'")
+    except Exception as e:
+        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        raise ToolError(f"Failed to set role: {str(e)}")
 
     if page_token and page_token in table_pagination_cache:
         cached_state = table_pagination_cache[page_token]
@@ -334,7 +375,12 @@ def list_tables(
             next_page_token = None
             if has_more:
                 next_page_token = create_page_token(
-                    database, like, not_like, table_names, end_idx, include_detailed_columns
+                    database,
+                    like,
+                    not_like,
+                    table_names,
+                    end_idx,
+                    include_detailed_columns,
                 )
 
             del table_pagination_cache[page_token]
@@ -383,23 +429,43 @@ def list_tables(
     }
 
 
-def execute_query(query: str):
+def execute_query(query: str, ctx: Context):
     client = create_clickhouse_client()
+
+    # Extract context - company_id is MANDATORY
+    user_context = get_user_context(ctx)
+    if not user_context or not user_context.company_id:
+        error_msg = "company_id is required in context metadata"
+        logger.error(error_msg)
+        raise ToolError(error_msg)
+
+    # Set role with company_id
+    logger.info(
+        f"Setting role to '{user_context.company_id}' for user '{user_context.user_name}'"
+    )
+    try:
+        client.command(f"SET role='{user_context.company_id}'")
+    except Exception as e:
+        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        raise ToolError(f"Failed to set role: {str(e)}")
+
     try:
         read_only = get_readonly_setting(client)
         res = client.query(query, settings={"readonly": read_only})
-        logger.info(f"Query returned {len(res.result_rows)} rows")
+        logger.info(
+            f"Query returned {len(res.result_rows)} rows for company '{user_context.company_id}'"
+        )
         return {"columns": res.column_names, "rows": res.result_rows}
     except Exception as err:
         logger.error(f"Error executing query: {err}")
         raise ToolError(f"Query execution failed: {str(err)}")
 
 
-def run_select_query(query: str):
+def run_select_query(query: str, ctx: Context):
     """Run a SELECT query in a ClickHouse database"""
     logger.info(f"Executing SELECT query: {query}")
     try:
-        future = QUERY_EXECUTOR.submit(execute_query, query)
+        future = QUERY_EXECUTOR.submit(execute_query, query, ctx)
         try:
             timeout_secs = get_mcp_config().query_timeout
             result = future.result(timeout=timeout_secs)
