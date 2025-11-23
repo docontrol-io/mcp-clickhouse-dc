@@ -139,12 +139,15 @@ def list_databases(ctx: Context):
 
     client = create_clickhouse_client()
 
-    # Set role with company_id
-    try:
-        client.command(f"SET role='{user_context.company_id}'")
-    except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
-        raise ToolError(f"Failed to set role: {str(e)}")
+    # Set role with company_id if enabled
+    if get_mcp_config().enable_set_role:
+        try:
+            client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        except Exception as e:
+            logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+            raise ToolError(f"Failed to set role: {str(e)}")
+    else:
+        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
 
     result = client.command("SHOW DATABASES")
 
@@ -336,12 +339,15 @@ def list_tables(
     )
     client = create_clickhouse_client()
 
-    # Set role with company_id
-    try:
-        client.command(f"SET role='{user_context.company_id}'")
-    except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
-        raise ToolError(f"Failed to set role: {str(e)}")
+    # Set role with company_id if enabled
+    if get_mcp_config().enable_set_role:
+        try:
+            client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        except Exception as e:
+            logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+            raise ToolError(f"Failed to set role: {str(e)}")
+    else:
+        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
 
     if page_token and page_token in table_pagination_cache:
         cached_state = table_pagination_cache[page_token]
@@ -439,15 +445,18 @@ def execute_query(query: str, ctx: Context):
         logger.error(error_msg)
         raise ToolError(error_msg)
 
-    # Set role with company_id
-    logger.info(
-        f"Setting role to '{user_context.company_id}' for user '{user_context.user_name}'"
-    )
-    try:
-        client.command(f"SET role='{user_context.company_id}'")
-    except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
-        raise ToolError(f"Failed to set role: {str(e)}")
+    # Set role with company_id if enabled
+    if get_mcp_config().enable_set_role:
+        logger.info(
+            f"Setting role to '{user_context.company_id}' for user '{user_context.user_name}'"
+        )
+        try:
+            client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        except Exception as e:
+            logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+            raise ToolError(f"Failed to set role: {str(e)}")
+    else:
+        logger.debug(f"SET ROLE disabled - skipping for company '{user_context.company_id}'")
 
     try:
         read_only = get_readonly_setting(client)
