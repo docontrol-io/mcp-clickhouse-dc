@@ -15,6 +15,9 @@ dependencies = [
      "cachetools>=5.5.0",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["mcp_clickhouse"]
+
 [project.scripts]
 clickhouse-mcp-dc = "mcp_clickhouse.main:main"
 
@@ -27,6 +30,7 @@ dev = [
     "pytest",
     "pytest-asyncio"
 ]
+
 
 [tool.hatch.build.targets.wheel]
 packages = ["mcp_clickhouse"]
