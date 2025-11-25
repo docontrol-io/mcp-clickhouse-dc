@@ -1,6 +1,6 @@
 [project]
-name = "mcp-clickhouse"
-version = "0.1.12"
+name = "clickhouse-mcp-dc"
+version = "0.0.1"
 description = "An MCP server for ClickHouse."
 readme = "README.md"
 license = "Apache-2.0"
@@ -15,8 +15,11 @@ dependencies = [
      "cachetools>=5.5.0",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["mcp_clickhouse"]
+
 [project.scripts]
-mcp-clickhouse = "mcp_clickhouse.main:main"
+clickhouse-mcp-dc = "mcp_clickhouse.main:main"
 
 [project.urls]
 Home = "https://github.com/ClickHouse/mcp-clickhouse"
@@ -27,6 +30,7 @@ dev = [
     "pytest",
     "pytest-asyncio"
 ]
+
 
 [tool.hatch.build.targets.wheel]
 packages = ["mcp_clickhouse"]

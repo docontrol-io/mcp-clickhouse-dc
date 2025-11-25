@@ -166,7 +166,9 @@ class ClickHouseConfig:
                 missing_vars.append(var)
 
         if missing_vars:
-            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            raise ValueError(
+                f"Missing required environment variables: {', '.join(missing_vars)}"
+            )
 
 
 @dataclass
@@ -264,10 +266,14 @@ class MCPServerConfig:
 
     @property
     def server_transport(self) -> str:
-        transport = os.getenv("CLICKHOUSE_MCP_SERVER_TRANSPORT", TransportType.STDIO.value).lower()
+        transport = os.getenv(
+            "CLICKHOUSE_MCP_SERVER_TRANSPORT", TransportType.STDIO.value
+        ).lower()
         if transport not in TransportType.values():
             valid_options = ", ".join(f'"{t}"' for t in TransportType.values())
-            raise ValueError(f"Invalid transport '{transport}'. Valid options: {valid_options}")
+            raise ValueError(
+                f"Invalid transport '{transport}'. Valid options: {valid_options}"
+            )
         return transport
 
     @property

@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from dotenv import load_dotenv
 
@@ -11,7 +12,14 @@ class TestChDBTools(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up the environment before chDB tests."""
+        os.environ['CHDB_ENABLED'] = 'true'
         cls.client = create_chdb_client()
+    
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up after tests."""
+        if 'CHDB_ENABLED' in os.environ:
+            del os.environ['CHDB_ENABLED']
 
     def test_run_chdb_select_query_simple(self):
         """Test running a simple SELECT query in chDB."""

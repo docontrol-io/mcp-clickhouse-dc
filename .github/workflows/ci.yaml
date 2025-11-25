@@ -74,5 +74,5 @@ jobs:
           timeout 10s docker run --rm \
             -e CLICKHOUSE_HOST=localhost \
             -e CLICKHOUSE_USER=default \
-            -e CLICKHOUSE_PASSWORD="" \
+            -e CLICKHOUSE_PASSWORD="clickhouse" \
             mcp-clickhouse:test || [ $? = 124 ] && echo "✅ Docker container starts successfully"

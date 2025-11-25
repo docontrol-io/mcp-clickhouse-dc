@@ -7,9 +7,8 @@ services:
     volumes:
       - clickhouse-data:/var/lib/clickhouse
     environment:
-      - CLICKHOUSE_USER=default
-      - CLICKHOUSE_PASSWORD=clickhouse
       - CLICKHOUSE_DB=default
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
 
 volumes:
   clickhouse-data:
