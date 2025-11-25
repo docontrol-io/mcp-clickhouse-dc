@@ -208,7 +208,7 @@ class TestListDatabases:
             "default\nsystem",
         ]  # First for SET ROLE, second for SHOW DATABASES
 
-        result = list_databases(ctx)
+        list_databases(ctx)
 
         # Verify SET ROLE was called first
         assert mock_client.command.call_count == 2
