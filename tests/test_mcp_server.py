@@ -24,15 +24,6 @@ async def setup_test_database():
     """Set up test database and tables before running tests."""
     client = create_clickhouse_client()
 
-    # Create test role for context and grant to default user
-    try:
-        client.command("CREATE ROLE IF NOT EXISTS test_company")
-        client.command("GRANT ALL ON *.* TO test_company")
-        client.command("GRANT test_company TO default")  # Grant role to default user
-    except Exception as e:
-        # Role might already exist or user doesn't have permission
-        pass
-
     # Test database and table names
     test_db = "test_mcp_db"
     test_table = "test_table"
@@ -96,10 +87,6 @@ async def setup_test_database():
 
     # Cleanup after tests
     client.command(f"DROP DATABASE IF EXISTS {test_db}")
-    try:
-        client.command("DROP ROLE IF EXISTS test_company")
-    except Exception:
-        pass
 
 
 @pytest.fixture
@@ -108,7 +95,6 @@ def mcp_server():
     return mcp
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_list_databases(mcp_server, setup_test_database):
     """Test the list_databases tool."""
@@ -132,7 +118,6 @@ async def test_list_databases(mcp_server, setup_test_database):
         assert "system" in databases  # System database should always exist
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_list_tables_basic(mcp_server, setup_test_database):
     """Test the list_tables tool without filters."""
@@ -180,7 +165,6 @@ async def test_list_tables_basic(mcp_server, setup_test_database):
                 assert "comment" in column
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_list_tables_with_like_filter(mcp_server, setup_test_database):
     """Test the list_tables tool with LIKE filter."""
@@ -204,7 +188,6 @@ async def test_list_tables_with_like_filter(mcp_server, setup_test_database):
         assert tables[0]["name"] == test_table
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_list_tables_with_not_like_filter(mcp_server, setup_test_database):
     """Test the list_tables tool with NOT LIKE filter."""
@@ -228,7 +211,6 @@ async def test_list_tables_with_not_like_filter(mcp_server, setup_test_database)
         assert tables[0]["name"] == test_table2
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_run_select_query_success(mcp_server, setup_test_database):
     """Test running a successful SELECT query."""
@@ -259,7 +241,6 @@ async def test_run_select_query_success(mcp_server, setup_test_database):
         assert query_result["rows"][3] == [4, "Diana", 28]
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_run_select_query_with_aggregation(mcp_server, setup_test_database):
     """Test running a SELECT query with aggregation."""
@@ -283,7 +264,6 @@ async def test_run_select_query_with_aggregation(mcp_server, setup_test_database
         assert query_result["rows"][0][1] == 29.5  # average age
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_run_select_query_with_join(mcp_server, setup_test_database):
     """Test running a SELECT query with JOIN."""
@@ -314,7 +294,6 @@ async def test_run_select_query_with_join(mcp_server, setup_test_database):
         assert query_result["rows"][0][0] == 3  # login, logout, purchase
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_run_select_query_error(mcp_server, setup_test_database):
     """Test running a SELECT query that results in an error."""
@@ -335,7 +314,6 @@ async def test_run_select_query_error(mcp_server, setup_test_database):
         assert "Query execution failed" in str(exc_info.value)
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_run_select_query_syntax_error(mcp_server):
     """Test running a SELECT query with syntax error."""
@@ -354,7 +332,6 @@ async def test_run_select_query_syntax_error(mcp_server):
         assert "Query execution failed" in str(exc_info.value)
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_table_metadata_details(mcp_server, setup_test_database):
     """Test that table metadata is correctly retrieved."""
@@ -402,7 +379,6 @@ async def test_table_metadata_details(mcp_server, setup_test_database):
         assert columns_by_name["created_at"]["default_expression"] == "now()"
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_system_database_access(mcp_server):
     """Test that we can access system databases."""
@@ -429,7 +405,6 @@ async def test_system_database_access(mcp_server):
         assert "databases" in table_names
 
 
-@pytest.mark.skip(reason="Requires fastmcp version with meta parameter support")
 @pytest.mark.asyncio
 async def test_concurrent_queries(mcp_server, setup_test_database):
     """Test running multiple queries concurrently."""

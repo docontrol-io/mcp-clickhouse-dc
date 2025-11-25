@@ -367,14 +367,7 @@ GRANT ALL ON *.* TO acme_corp;
 GRANT acme_corp TO mcp_user;
 ```
 
-**For testing or when roles are not configured**, you can disable SET ROLE execution:
-
-```bash
-# Disable SET ROLE for development/testing
-export CLICKHOUSE_ENABLE_SET_ROLE=false
-```
-
-When disabled, the server still requires `company_id` in context (for logging/auditing) but won't execute the `SET ROLE` command.
+**Note**: The server will always execute `SET ROLE {company_id}` before queries. Ensure roles are properly configured in ClickHouse.
 
 ## Development
 
@@ -460,9 +453,6 @@ The following environment variables are used to configure the ClickHouse and chD
 - `CLICKHOUSE_ENABLED`: Enable/disable ClickHouse functionality
   - Default: `"true"`
   - Set to `"false"` to disable ClickHouse tools when using chDB only
-- `CLICKHOUSE_ENABLE_SET_ROLE`: Enable/disable SET ROLE execution for multi-tenancy
-  - Default: `"true"`
-  - Set to `"false"` to disable SET ROLE (still requires company_id for logging)
 
 #### chDB Variables
 

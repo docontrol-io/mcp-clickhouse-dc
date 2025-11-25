@@ -16,15 +16,6 @@ class TestClickhouseTools(unittest.TestCase):
         """Set up the environment before tests."""
         cls.client = create_clickhouse_client()
         
-        # Create test role for context and grant to default user
-        try:
-            cls.client.command("CREATE ROLE IF NOT EXISTS test_company")
-            cls.client.command("GRANT ALL ON *.* TO test_company")
-            cls.client.command("GRANT test_company TO default")  # Grant role to default user
-        except Exception as e:
-            # Role might already exist or user doesn't have permission
-            pass
-        
         # Create mock context for all tests
         cls.mock_ctx = Mock()
         cls.mock_ctx.request_context = Mock()
@@ -57,10 +48,6 @@ class TestClickhouseTools(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up the environment after tests."""
         cls.client.command(f"DROP DATABASE IF EXISTS {cls.test_db}")
-        try:
-            cls.client.command("DROP ROLE IF EXISTS test_company")
-        except Exception:
-            pass
 
     def test_list_databases(self):
         """Test listing databases."""

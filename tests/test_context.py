@@ -107,19 +107,13 @@ class TestExecuteQuery:
 
         assert "company_id is required" in str(exc_info.value)
 
-    @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
     @patch("mcp_clickhouse.mcp_server.get_readonly_setting")
     def test_execute_query_with_company_id_sets_role(
-        self, mock_get_readonly, mock_create_client, mock_get_mcp_config
+        self, mock_get_readonly, mock_create_client
     ):
         """Test that execute_query calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import execute_query
-
-        # Mock config to enable SET ROLE
-        mock_config = Mock()
-        mock_config.enable_set_role = True
-        mock_get_mcp_config.return_value = mock_config
 
         # Create valid context
         ctx = Mock()
@@ -150,18 +144,12 @@ class TestExecuteQuery:
         # Verify result
         assert result == {"columns": ["col1"], "rows": [[1]]}
 
-    @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
     def test_execute_query_set_role_failure_raises_error(
-        self, mock_create_client, mock_get_mcp_config
+        self, mock_create_client
     ):
         """Test that execute_query raises ToolError when SET ROLE fails."""
         from mcp_clickhouse.mcp_server import execute_query
-
-        # Mock config to enable SET ROLE
-        mock_config = Mock()
-        mock_config.enable_set_role = True
-        mock_get_mcp_config.return_value = mock_config
 
         # Create valid context
         ctx = Mock()
@@ -202,18 +190,12 @@ class TestListDatabases:
 
         assert "company_id is required" in str(exc_info.value)
 
-    @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
     def test_list_databases_with_company_id_sets_role(
-        self, mock_create_client, mock_get_mcp_config
+        self, mock_create_client
     ):
         """Test that list_databases calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import list_databases
-
-        # Mock config to enable SET ROLE
-        mock_config = Mock()
-        mock_config.enable_set_role = True
-        mock_get_mcp_config.return_value = mock_config
 
         # Create valid context
         ctx = Mock()
@@ -258,7 +240,6 @@ class TestListTables:
 
         assert "company_id is required" in str(exc_info.value)
 
-    @patch("mcp_clickhouse.mcp_server.get_mcp_config")
     @patch("mcp_clickhouse.mcp_server.fetch_table_names_from_system")
     @patch("mcp_clickhouse.mcp_server.get_paginated_table_data")
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
@@ -267,15 +248,9 @@ class TestListTables:
         mock_create_client,
         mock_get_paginated,
         mock_fetch_names,
-        mock_get_mcp_config,
     ):
         """Test that list_tables calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import list_tables
-
-        # Mock config to enable SET ROLE
-        mock_config = Mock()
-        mock_config.enable_set_role = True
-        mock_get_mcp_config.return_value = mock_config
 
         # Create valid context
         ctx = Mock()

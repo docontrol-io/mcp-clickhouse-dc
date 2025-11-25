@@ -68,10 +68,6 @@ class TestPagination(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up the environment after tests."""
         cls.client.command(f"DROP DATABASE IF EXISTS {cls.test_db}")
-        try:
-            cls.client.command("DROP ROLE IF EXISTS test_company")
-        except Exception:
-            pass
 
     def test_list_tables_pagination(self):
         """Test that list_tables returns paginated results."""

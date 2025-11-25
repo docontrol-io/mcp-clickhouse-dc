@@ -288,15 +288,6 @@ class MCPServerConfig:
     def query_timeout(self) -> int:
         return int(os.getenv("CLICKHOUSE_MCP_QUERY_TIMEOUT", "30"))
 
-    @property
-    def enable_set_role(self) -> bool:
-        """Enable SET ROLE execution for multi-tenancy.
-
-        Default: True
-        Set to false for testing or when roles are not configured.
-        """
-        return os.getenv("CLICKHOUSE_ENABLE_SET_ROLE", "true").lower() == "true"
-
 
 _MCP_CONFIG_INSTANCE = None
 
