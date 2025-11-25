@@ -1,5 +1,4 @@
 import unittest
-import time
 from unittest.mock import Mock
 
 from dotenv import load_dotenv
@@ -30,7 +29,7 @@ class TestPagination(unittest.TestCase):
             cls.client.command(
                 "GRANT test_company TO default"
             )  # Grant role to default user
-        except Exception as e:
+        except Exception:
             # Role might already exist or user doesn't have permission
             pass
 

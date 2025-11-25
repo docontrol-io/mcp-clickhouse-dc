@@ -5,7 +5,12 @@ from unittest.mock import Mock
 from dotenv import load_dotenv
 from fastmcp.exceptions import ToolError
 
-from mcp_clickhouse import create_clickhouse_client, list_databases, list_tables, run_select_query
+from mcp_clickhouse import (
+    create_clickhouse_client,
+    list_databases,
+    list_tables,
+    run_select_query,
+)
 
 load_dotenv()
 
@@ -15,7 +20,7 @@ class TestClickhouseTools(unittest.TestCase):
     def setUpClass(cls):
         """Set up the environment before tests."""
         cls.client = create_clickhouse_client()
-        
+
         # Create mock context for all tests
         cls.mock_ctx = Mock()
         cls.mock_ctx.request_context = Mock()
@@ -32,17 +37,21 @@ class TestClickhouseTools(unittest.TestCase):
         cls.client.command(f"DROP TABLE IF EXISTS {cls.test_db}.{cls.test_table}")
 
         # Create table with comments
-        cls.client.command(f"""
+        cls.client.command(
+            f"""
             CREATE TABLE {cls.test_db}.{cls.test_table} (
                 id UInt32 COMMENT 'Primary identifier',
                 name String COMMENT 'User name field'
             ) ENGINE = MergeTree()
             ORDER BY id
             COMMENT 'Test table for unit testing'
-        """)
-        cls.client.command(f"""
+        """
+        )
+        cls.client.command(
+            f"""
             INSERT INTO {cls.test_db}.{cls.test_table} (id, name) VALUES (1, 'Alice'), (2, 'Bob')
-        """)
+        """
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -67,7 +76,9 @@ class TestClickhouseTools(unittest.TestCase):
 
     def test_list_tables_with_like(self):
         """Test listing tables with a 'LIKE' filter."""
-        result = list_tables(self.test_db, like=f"{self.test_table}%", ctx=self.mock_ctx)
+        result = list_tables(
+            self.test_db, like=f"{self.test_table}%", ctx=self.mock_ctx
+        )
         self.assertIsInstance(result, dict)
         self.assertIn("tables", result)
         tables = result["tables"]

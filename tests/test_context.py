@@ -145,9 +145,7 @@ class TestExecuteQuery:
         assert result == {"columns": ["col1"], "rows": [[1]]}
 
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
-    def test_execute_query_set_role_failure_raises_error(
-        self, mock_create_client
-    ):
+    def test_execute_query_set_role_failure_raises_error(self, mock_create_client):
         """Test that execute_query raises ToolError when SET ROLE fails."""
         from mcp_clickhouse.mcp_server import execute_query
 
@@ -191,9 +189,7 @@ class TestListDatabases:
         assert "company_id is required" in str(exc_info.value)
 
     @patch("mcp_clickhouse.mcp_server.create_clickhouse_client")
-    def test_list_databases_with_company_id_sets_role(
-        self, mock_create_client
-    ):
+    def test_list_databases_with_company_id_sets_role(self, mock_create_client):
         """Test that list_databases calls SET ROLE when company_id is present."""
         from mcp_clickhouse.mcp_server import list_databases
 
