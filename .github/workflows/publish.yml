@@ -34,7 +34,7 @@ jobs:
           CLICKHOUSE_HOST: localhost
           CLICKHOUSE_PORT: 8123
           CLICKHOUSE_USER: default
-          CLICKHOUSE_PASSWORD: clickhouse
+          CLICKHOUSE_PASSWORD: ""
           CLICKHOUSE_SECURE: "false"
           CHDB_ENABLED: "true"
 

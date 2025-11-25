@@ -381,7 +381,7 @@ _Note: The use of the `default` user in this context is intended solely for loca
 CLICKHOUSE_HOST=localhost
 CLICKHOUSE_PORT=8123
 CLICKHOUSE_USER=default
-CLICKHOUSE_PASSWORD=clickhouse
+CLICKHOUSE_PASSWORD=
 ```
 
 3. Run `uv sync` to install the dependencies. To install `uv` follow the instructions [here](https://docs.astral.sh/uv/). Then do `source .venv/bin/activate`.
