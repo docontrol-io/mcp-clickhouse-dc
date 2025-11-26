@@ -1,16 +1,11 @@
 import unittest
 import json
-from unittest.mock import Mock
 
 from dotenv import load_dotenv
 from fastmcp.exceptions import ToolError
 
-from mcp_clickhouse import (
-    create_clickhouse_client,
-    list_databases,
-    list_tables,
-    run_select_query,
-)
+from mcp_clickhouse import create_clickhouse_client
+from mcp_clickhouse.mcp_server import list_databases, list_tables, run_select_query
 
 load_dotenv()
 
@@ -21,12 +16,8 @@ class TestClickhouseTools(unittest.TestCase):
         """Set up the environment before tests."""
         cls.client = create_clickhouse_client()
 
-        # Create mock context for all tests
-        cls.mock_ctx = Mock()
-        cls.mock_ctx.request_context = Mock()
-        cls.mock_ctx.request_context.meta = Mock()
-        cls.mock_ctx.request_context.meta.user_name = "test_user"
-        cls.mock_ctx.request_context.meta.company_id = "test_company"
+        # Create request context dict for all tests
+        cls.request_ctx = {"user_name": "test_user", "company_id": "test_company"}
 
         # Prepare test database and table
         cls.test_db = "test_tool_db"
@@ -60,14 +51,14 @@ class TestClickhouseTools(unittest.TestCase):
 
     def test_list_databases(self):
         """Test listing databases."""
-        result = list_databases(self.mock_ctx)
+        result = list_databases.fn(self.request_ctx)
         # Parse JSON response
         databases = json.loads(result)
         self.assertIn(self.test_db, databases)
 
     def test_list_tables_without_like(self):
         """Test listing tables without a 'LIKE' filter."""
-        result = list_tables(self.test_db, ctx=self.mock_ctx)
+        result = list_tables.fn(self.test_db, request_context=self.request_ctx)
         self.assertIsInstance(result, dict)
         self.assertIn("tables", result)
         tables = result["tables"]
@@ -76,8 +67,8 @@ class TestClickhouseTools(unittest.TestCase):
 
     def test_list_tables_with_like(self):
         """Test listing tables with a 'LIKE' filter."""
-        result = list_tables(
-            self.test_db, like=f"{self.test_table}%", ctx=self.mock_ctx
+        result = list_tables.fn(
+            self.test_db, like=f"{self.test_table}%", request_context=self.request_ctx
         )
         self.assertIsInstance(result, dict)
         self.assertIn("tables", result)
@@ -88,7 +79,7 @@ class TestClickhouseTools(unittest.TestCase):
     def test_run_select_query_success(self):
         """Test running a SELECT query successfully."""
         query = f"SELECT * FROM {self.test_db}.{self.test_table}"
-        result = run_select_query(query, self.mock_ctx)
+        result = run_select_query.fn(query, self.request_ctx)
         self.assertIsInstance(result, dict)
         self.assertEqual(len(result["rows"]), 2)
         self.assertEqual(result["rows"][0][0], 1)
@@ -100,13 +91,13 @@ class TestClickhouseTools(unittest.TestCase):
 
         # Should raise ToolError
         with self.assertRaises(ToolError) as context:
-            run_select_query(query, self.mock_ctx)
+            run_select_query.fn(query, self.request_ctx)
 
         self.assertIn("Query execution failed", str(context.exception))
 
     def test_table_and_column_comments(self):
         """Test that table and column comments are correctly retrieved."""
-        result = list_tables(self.test_db, ctx=self.mock_ctx)
+        result = list_tables.fn(self.test_db, request_context=self.request_ctx)
         self.assertIsInstance(result, dict)
         self.assertIn("tables", result)
         tables = result["tables"]
@@ -130,7 +121,7 @@ class TestClickhouseTools(unittest.TestCase):
         self.client.command(f"CREATE DATABASE IF NOT EXISTS {empty_db}")
 
         try:
-            result = list_tables(empty_db, ctx=self.mock_ctx)
+            result = list_tables.fn(empty_db, request_context=self.request_ctx)
             self.assertIsInstance(result, dict)
             self.assertIn("tables", result)
             self.assertEqual(len(result["tables"]), 0)
@@ -141,7 +132,9 @@ class TestClickhouseTools(unittest.TestCase):
 
     def test_list_tables_with_not_like_filter_excluding_all(self):
         """Test listing tables with a NOT LIKE filter that excludes all tables."""
-        result = list_tables(self.test_db, not_like="%", ctx=self.mock_ctx)
+        result = list_tables.fn(
+            self.test_db, not_like="%", request_context=self.request_ctx
+        )
         self.assertIsInstance(result, dict)
         self.assertIn("tables", result)
         self.assertEqual(len(result["tables"]), 0)
