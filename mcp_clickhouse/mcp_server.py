@@ -124,26 +124,26 @@ def to_json(obj: Any) -> str:
     return obj
 
 
-def list_databases(ctx: Context):
+@mcp.tool
+def list_databases(request_context: dict[str, Any]):
     """List available ClickHouse databases"""
     # company_id is MANDATORY
-    user_context = get_user_context(ctx)
-    if not user_context or not user_context.company_id:
+    company_id = request_context.get("company_id")
+    user_name = request_context.get("user_name", "unknown")
+    if not company_id:
         error_msg = "company_id is required in context metadata"
         logger.error(error_msg)
         raise ToolError(error_msg)
 
-    logger.info(
-        f"Listing databases for user '{user_context.user_name}' (company: {user_context.company_id})"
-    )
+    logger.info(f"Listing databases for user '{user_name}' (company: {company_id})")
 
     client = create_clickhouse_client()
 
     # Set role with company_id
     try:
-        client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        client.command(f"SET ROLE {format_query_value(company_id)}")
     except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        logger.error(f"Failed to set role '{company_id}': {e}")
         raise ToolError(f"Failed to set role: {str(e)}")
 
     result = client.command("SHOW DATABASES")
@@ -286,6 +286,7 @@ def create_page_token(
     return token
 
 
+@mcp.tool
 def list_tables(
     database: str,
     like: Optional[str] = None,
@@ -293,7 +294,7 @@ def list_tables(
     page_token: Optional[str] = None,
     page_size: int = 50,
     include_detailed_columns: bool = True,
-    ctx: Context = None,
+    request_context: dict[str, Any] = None,
 ) -> Dict[str, Any]:
     """List available ClickHouse tables in a database, including schema, comment,
     row count, and column count.
@@ -316,18 +317,20 @@ def list_tables(
         - total_tables: Total number of tables matching the filters
     """
     # company_id is MANDATORY
-    user_context = get_user_context(ctx)
-    if not user_context or not user_context.company_id:
+
+    if not request_context or not request_context.get("company_id"):
         error_msg = "company_id is required in context metadata"
         logger.error(error_msg)
         raise ToolError(error_msg)
 
+    company_id = request_context.get("company_id")
+    user_name = request_context.get("user_name", "unknown")
     logger.info(
         "Listing tables in database '%s' for user '%s' (company: %s) with like=%s, not_like=%s, "
         "page_token=%s, page_size=%s, include_detailed_columns=%s",
         database,
-        user_context.user_name,
-        user_context.company_id,
+        request_context.get("user_name", "unknown"),
+        company_id,
         like,
         not_like,
         page_token,
@@ -338,9 +341,9 @@ def list_tables(
 
     # Set role with company_id
     try:
-        client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        client.command(f"SET ROLE {format_query_value(company_id)}")
     except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        logger.error(f"Failed to set role '{company_id}': {e}")
         raise ToolError(f"Failed to set role: {str(e)}")
 
     if page_token and page_token in table_pagination_cache:
@@ -429,31 +432,30 @@ def list_tables(
     }
 
 
-def execute_query(query: str, ctx: Context):
+def execute_query(query: str, request_context: dict[str, Any]):
     client = create_clickhouse_client()
 
     # Extract context - company_id is MANDATORY
-    user_context = get_user_context(ctx)
-    if not user_context or not user_context.company_id:
+    user_name = request_context.get("user_name", "unknown")
+    company_id = request_context.get("company_id")
+    if not company_id:
         error_msg = "company_id is required in context metadata"
         logger.error(error_msg)
         raise ToolError(error_msg)
 
     # Set role with company_id
-    logger.info(
-        f"Setting role to '{user_context.company_id}' for user '{user_context.user_name}'"
-    )
+    logger.info(f"Setting role to '{company_id}' for user '{user_name}'")
     try:
-        client.command(f"SET ROLE {format_query_value(user_context.company_id)}")
+        client.command(f"SET ROLE {format_query_value(company_id)}")
     except Exception as e:
-        logger.error(f"Failed to set role '{user_context.company_id}': {e}")
+        logger.error(f"Failed to set role '{company_id}': {e}")
         raise ToolError(f"Failed to set role: {str(e)}")
 
     try:
         read_only = get_readonly_setting(client)
         res = client.query(query, settings={"readonly": read_only})
         logger.info(
-            f"Query returned {len(res.result_rows)} rows for company '{user_context.company_id}'"
+            f"Query returned {len(res.result_rows)} rows for company '{company_id}'"
         )
         return {"columns": res.column_names, "rows": res.result_rows}
     except Exception as err:
@@ -461,15 +463,17 @@ def execute_query(query: str, ctx: Context):
         raise ToolError(f"Query execution failed: {str(err)}")
 
 
-def run_select_query(query: str, ctx: Context):
+@mcp.tool
+def run_select_query(query: str, request_context: dict[str, Any]):
     """Run a SELECT query in a ClickHouse database"""
     logger.info(f"Executing SELECT query: {query}")
     logger.info(
-        f"context of the run selelt query {str(ctx.request_context.meta)}",
-        extra={"ctx": ctx},
+        f"context of the run select query {request_context}",
+        extra={"ctx": request_context},
     )
+
     try:
-        future = QUERY_EXECUTOR.submit(execute_query, query, ctx)
+        future = QUERY_EXECUTOR.submit(execute_query, query, request_context)
         try:
             timeout_secs = get_mcp_config().query_timeout
             result = future.result(timeout=timeout_secs)
