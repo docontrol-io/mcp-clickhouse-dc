@@ -12,7 +12,7 @@ from clickhouse_connect.driver.binding import format_query_value
 from dotenv import load_dotenv
 from fastmcp import FastMCP, Context
 from cachetools import TTLCache
-from fastmcp.tools import Tool
+from fastmcp.tools import Tool, tool
 from fastmcp.prompts import Prompt
 from fastmcp.exceptions import ToolError
 from dataclasses import dataclass, field, asdict, is_dataclass
@@ -461,9 +461,11 @@ def execute_query(query: str, ctx: Context):
         raise ToolError(f"Query execution failed: {str(err)}")
 
 
+@tool
 def run_select_query(query: str, ctx: Context):
     """Run a SELECT query in a ClickHouse database"""
     logger.info(f"Executing SELECT query: {query}")
+    print(f"context of the run selelt query {ctx.request_context.meta}", ctx)
     try:
         future = QUERY_EXECUTOR.submit(execute_query, query, ctx)
         try:
