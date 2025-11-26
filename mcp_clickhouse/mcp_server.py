@@ -633,9 +633,9 @@ def _init_chdb_client():
 
 # Register tools based on configuration
 if os.getenv("CLICKHOUSE_ENABLED", "true").lower() == "true":
-    mcp.add_tool(Tool.from_function(list_databases))
-    mcp.add_tool(Tool.from_function(list_tables))
-    mcp.add_tool(Tool.from_function(run_select_query))
+    # mcp.add_tool(Tool.from_function(list_databases))
+    # mcp.add_tool(Tool.from_function(list_tables))
+    # mcp.add_tool(Tool.from_function(run_select_query))
     logger.info("ClickHouse tools registered")
 
 
