@@ -464,7 +464,7 @@ def execute_query(query: str, ctx: Context):
 def run_select_query(query: str, ctx: Context):
     """Run a SELECT query in a ClickHouse database"""
     logger.info(f"Executing SELECT query: {query}")
-    print(f"context of the run selelt query {ctx.request_context.meta}", ctx)
+    logger.info(f"context of the run selelt query", extra={"ctx": ctx})
     try:
         future = QUERY_EXECUTOR.submit(execute_query, query, ctx)
         try:
