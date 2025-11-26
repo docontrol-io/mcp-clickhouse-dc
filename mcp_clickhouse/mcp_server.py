@@ -21,7 +21,6 @@ from starlette.responses import PlainTextResponse
 
 from mcp_clickhouse.mcp_env import get_config, get_chdb_config, get_mcp_config
 from mcp_clickhouse.chdb_prompt import CHDB_PROMPT
-from mcp_clickhouse.context_manager import get_user_context
 
 
 @dataclass
