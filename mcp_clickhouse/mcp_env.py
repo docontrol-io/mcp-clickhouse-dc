@@ -8,6 +8,9 @@ from dataclasses import dataclass
 import os
 from typing import Optional
 from enum import Enum
+import logging
+
+logger = logging.getLogger("mcp-clickhouse")
 
 
 class TransportType(str, Enum):
@@ -82,8 +85,48 @@ class ClickHouseConfig:
 
     @property
     def password(self) -> str:
-        """Get the ClickHouse password."""
+        """Get the ClickHouse password.
+
+        Tries to fetch from AWS SSM if CLICKHOUSE_PASSWORD_FROM_SSM_PATH is set,
+        otherwise uses CLICKHOUSE_PASSWORD environment variable.
+        """
+        ssm_path = os.getenv("CLICKHOUSE_PASSWORD_FROM_SSM_PATH")
+        if ssm_path:
+            return self._get_password_from_ssm(ssm_path)
         return os.environ["CLICKHOUSE_PASSWORD"]
+
+    def _get_password_from_ssm(self, parameter_path: str) -> str:
+        """Retrieve password from AWS Systems Manager Parameter Store.
+
+        Args:
+            parameter_path: SSM parameter path (e.g., /prod/clickhouse/password)
+
+        Returns:
+            The password value from SSM
+
+        Raises:
+            ValueError: If SSM retrieval fails
+        """
+        try:
+            import boto3
+            from botocore.exceptions import ClientError, BotoCoreError
+
+            logger.info(f"Retrieving ClickHouse password from SSM: {parameter_path}")
+            ssm = boto3.client("ssm")
+            response = ssm.get_parameter(Name=parameter_path, WithDecryption=True)
+            password = response["Parameter"]["Value"]
+            logger.info("Successfully retrieved password from SSM")
+            return password
+        except (ClientError, BotoCoreError) as e:
+            error_msg = (
+                f"Failed to retrieve password from SSM path '{parameter_path}': {e}"
+            )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        except ImportError:
+            error_msg = "boto3 is required for SSM password retrieval. Install with: pip install boto3"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
 
     @property
     def database(self) -> Optional[str]:
