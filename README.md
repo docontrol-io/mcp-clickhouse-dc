@@ -412,6 +412,9 @@ The following environment variables are used to configure the ClickHouse and chD
 - `CLICKHOUSE_HOST`: The hostname of your ClickHouse server
 - `CLICKHOUSE_USER`: The username for authentication
 - `CLICKHOUSE_PASSWORD`: The password for authentication
+  - **OR** `CLICKHOUSE_PASSWORD_FROM_SSM_PATH`: AWS SSM parameter path to retrieve password (e.g., `/prod/clickhouse/password`)
+  - If `CLICKHOUSE_PASSWORD_FROM_SSM_PATH` is set, it takes precedence over `CLICKHOUSE_PASSWORD`
+  - Requires AWS credentials configured (via environment variables, IAM role, or AWS CLI)
 
 > [!CAUTION]
 > It is important to treat your MCP database user as you would any external client connecting to your database, granting only the minimum necessary privileges required for its operation. The use of default or administrative users should be strictly avoided at all times.
@@ -490,6 +493,24 @@ CLICKHOUSE_PASSWORD=your-password
 # Optional: These use secure defaults
 # CLICKHOUSE_SECURE=true  # Uses port 8443 automatically
 # CLICKHOUSE_DATABASE=your_database
+```
+
+For ClickHouse with AWS SSM password:
+
+```env
+# Required variables
+CLICKHOUSE_HOST=your-clickhouse-host.com
+CLICKHOUSE_USER=mcp_user
+CLICKHOUSE_PASSWORD_FROM_SSM_PATH=/prod/clickhouse/password
+
+# AWS credentials (one of these methods):
+# 1. Environment variables:
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_REGION=us-east-1
+
+# 2. Or use IAM role (recommended for EC2/ECS/Lambda)
+# 3. Or use AWS CLI profile (~/.aws/credentials)
 ```
 
 For ClickHouse SQL Playground:
