@@ -461,7 +461,6 @@ def execute_query(query: str, ctx: Context):
         raise ToolError(f"Query execution failed: {str(err)}")
 
 
-@tool
 def run_select_query(query: str, ctx: Context):
     """Run a SELECT query in a ClickHouse database"""
     logger.info(f"Executing SELECT query: {query}")
