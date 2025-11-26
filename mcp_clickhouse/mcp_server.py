@@ -10,9 +10,9 @@ import clickhouse_connect
 import chdb.session as chs
 from clickhouse_connect.driver.binding import format_query_value
 from dotenv import load_dotenv
-from fastmcp import FastMCP, Context
+from fastmcp import FastMCP
 from cachetools import TTLCache
-from fastmcp.tools import Tool, tool
+from fastmcp.tools import Tool
 from fastmcp.prompts import Prompt
 from fastmcp.exceptions import ToolError
 from dataclasses import dataclass, field, asdict, is_dataclass
@@ -323,7 +323,6 @@ def list_tables(
         raise ToolError(error_msg)
 
     company_id = request_context.get("company_id")
-    user_name = request_context.get("user_name", "unknown")
     logger.info(
         "Listing tables in database '%s' for user '%s' (company: %s) with like=%s, not_like=%s, "
         "page_token=%s, page_size=%s, include_detailed_columns=%s",
